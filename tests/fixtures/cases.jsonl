@@ -1,0 +1,5 @@
+{"input": "CRITICAL: disk failure imminent on /dev/sda", "expected": "critical"}
+{"input": "sshd[2451]: Failed password for root from 10.0.0.9", "expected": "high"}
+{"input": "app: WARN request retry backoff after timeout", "expected": "medium"}
+{"input": "systemd: NOTICE service reloaded configuration", "expected": "low"}
+{"input": "kernel: Out of memory: Killed process 8123 (java)", "expected": "critical"}
