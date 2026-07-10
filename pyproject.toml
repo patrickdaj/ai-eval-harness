@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "eval-harness"
 version = "0.1.0"
-description = "The ~150-line LLM eval skeleton you reuse for the whole program: load cases, run a model, score, report pass rate / cost / latency."
+description = "A small (~150-line) LLM eval skeleton: load cases, run a model, score, report pass rate / cost / latency."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

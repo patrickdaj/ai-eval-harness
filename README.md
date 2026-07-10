@@ -1,9 +1,9 @@
-# eval-template — the harness you reuse for the whole program
+# eval-harness
 
-This is the ~150-line eval skeleton from [Week 0, Day 5](../../docs/program/00-arm-yourself/README.md).
-It's a **reference scaffold**, not a substitute for building your own: read every line,
-understand it, then extend it. In the program you keep *this same harness* alive for eight
-weeks — it's the thing that turns "seems good" into a number on every ship.
+A small (~150-line) LLM eval skeleton I use to turn "seems good" into a number:
+load cases, run a model, score, and report pass rate / cost / latency. It's
+deliberately minimal so it's easy to read end-to-end, verify, and extend for a
+specific task rather than being a black box.
 
 ## Install
 
@@ -48,11 +48,11 @@ The failure log lines are shown **in full** — nothing is truncated. When a lin
 wider than your terminal it wraps onto the next line(s), indented under the log text,
 so the detail that explains the failure is always on screen.
 
-**80%, not 100% — on purpose.** The mock is a naive keyword classifier that never spots
-*critical* severity when a log implies it by mechanism (an OOM kill, a segfault) rather than
-saying the word. That gap is the lesson: an ugly baseline is the starting point, and the
-failures list is what tells you where to go. The process exits non-zero when any case fails,
-so the same script doubles as a CI gate later.
+**80%, not 100% — on purpose.** The sample task is log-severity classification, and the
+mock is a naive keyword classifier that never spots *critical* severity when a log implies
+it by mechanism (an OOM kill, a segfault) rather than saying the word. That gap is the point:
+a rough baseline is the starting line, and the failures list is what tells you where to go.
+The process exits non-zero when any case fails, so the same script doubles as a CI gate.
 
 ## Prettier output (optional)
 
@@ -81,19 +81,19 @@ pytest
 
 | File | Role |
 |------|------|
-| `cases.jsonl` | The eval set: `{input, expected}` per line. On-theme toy task — log-severity classification. Replace with your Week-1 golden set. |
+| `cases.jsonl` | The eval set: `{input, expected}` per line. A toy log-severity classification task — swap in your own golden set. |
 | `src/eval_harness/providers.py` | `complete(prompt, model)` → `(text, cost, latency)`. `mock` is offline; anything else routes through litellm, so swapping models is one word. |
-| `src/eval_harness/scorers.py` | `exact_match` (free, for labels/IDs/formats) and `llm_judge` (for free-text; falls back to exact offline until you validate it in Week 7). |
+| `src/eval_harness/scorers.py` | `exact_match` (free, for labels/IDs/formats) and `llm_judge` (for free-text; falls back to exact offline until you validate it). |
 | `src/eval_harness/eval.py` | Load → run → score → report pass rate, cost, and p50/p95 latency, listing every failure. Rich tables when `[pretty]` is installed, else plain text. |
 | `tests/` | Offline pytest suite (scorers, providers, eval pipeline, report formatting) with a small `fixtures/cases.jsonl`. |
 | `pyproject.toml` | Package metadata, entrypoints, and optional extras (`litellm`, `pretty`, `dev`). |
 
-## How you extend it (don't replace it)
+## Extending it
 
-- **Week 1** — swap `cases.jsonl` for your 30-case golden set; add a task-specific scorer; run two models and compare the cost/latency columns.
-- **Week 2** — add `hit_rate@k` / `MRR` scorers for RAG retrieval.
-- **Week 3** — add a runner that drives your agent loop and scores task completion.
-- **Week 7** — validate `llm_judge` against 30 hand labels (measure agreement), then wire this into CI on your most-used ships.
+The harness is meant to be a stable base you grow, not something you throw away per task:
 
-The rule the whole program runs on applies here first: **AI can draft this; you review every
-line and own it.**
+- Swap `cases.jsonl` for your own golden set and add a task-specific scorer.
+- Run two models and compare the cost/latency columns to make a real trade-off.
+- Add retrieval scorers (`hit_rate@k` / `MRR`) if you're evaluating RAG.
+- Add a runner that drives an agent loop and scores task completion.
+- Validate `llm_judge` against a batch of hand labels (measure agreement) before you trust it, then wire the harness into CI on the ships you care about most.
