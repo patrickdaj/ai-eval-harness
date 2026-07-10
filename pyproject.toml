@@ -12,12 +12,17 @@ license = { text = "MIT" }
 
 # The mock path needs nothing but the Python standard library. The extras below
 # are opt-in: `litellm` to point --model at a real model, `pretty` for colored
-# tables, `dev` for the test toolchain.
+# tables. The test toolchain lives in the `dev` dependency group (below).
 dependencies = []
 
 [project.optional-dependencies]
 litellm = ["litellm>=1.50", "tenacity"]
 pretty = ["rich>=13"]
+
+# Dev toolchain as a PEP 735 dependency group — `uv sync` installs it by default.
+# `rich` is intentionally duplicated with the `pretty` extra so the test suite
+# exercises the colored report path.
+[dependency-groups]
 dev = ["pytest", "rich>=13"]
 
 [project.scripts]

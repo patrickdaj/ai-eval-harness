@@ -7,24 +7,34 @@ specific task rather than being a black box.
 
 ## Install
 
-The harness is a small `src/eval_harness/` package. The mock path needs **no
-dependencies** — install extras only for what you reach for:
+The harness is a small `src/eval_harness/` package managed with
+[uv](https://docs.astral.sh/uv/). The mock path needs **no dependencies** — sync
+extras only for what you reach for. `uv sync` creates the `.venv` and installs from
+the committed `uv.lock`, so installs are reproducible:
 
 ```bash
-pip install -e .                # offline mock path, zero third-party deps
-pip install -e ".[litellm]"     # add real models via litellm (also needs a key)
-pip install -e ".[pretty]"      # add rich for colored tables (see "Prettier output")
-pip install -e ".[dev]"         # add the test toolchain (pytest + rich)
+uv sync                              # offline mock path + dev tools (pytest); zero runtime deps
+uv sync --extra litellm              # add real models via litellm (also needs a key)
+uv sync --extra pretty               # add rich for colored tables (see "Prettier output")
+uv sync --no-dev                     # runtime only, skip the pytest dev group
 ```
+
+`uv sync` installs the `dev` dependency group (pytest) by default. Prefer plain pip?
+It still works — `pip install -e .`, `pip install -e ".[litellm]"`, and
+`pip install -e ".[pretty]"`. The test toolchain now lives in a PEP 735 dependency
+group, so install it with `pip install -e . --group dev` (pip 25.1+).
 
 ## Run it
 
 ```bash
-python -m eval_harness                          # offline: a mock model, no API key, no deps
-eval-harness                                    # same thing via the installed console script
-python -m eval_harness --model claude-sonnet-5  # a real model via litellm (needs a key + the [litellm] extra)
-python -m eval_harness --no-color               # force plain output (see "Prettier output" below)
+uv run python -m eval_harness                          # offline: a mock model, no API key, no deps
+uv run eval-harness                                    # same thing via the installed console script
+uv run python -m eval_harness --model claude-sonnet-5  # a real model via litellm (needs a key + --extra litellm)
+uv run python -m eval_harness --no-color               # force plain output (see "Prettier output" below)
 ```
+
+`uv run` executes inside the synced `.venv`. Once the environment is active you can
+also drop the prefix and call `python -m eval_harness` / `eval-harness` directly.
 
 Both entrypoints resolve `cases.jsonl` at the project root, so they work from any
 directory. The default run is fully offline so the *harness* is verifiable before you
@@ -60,8 +70,8 @@ Install [`rich`](https://github.com/Textualize/rich) and the report renders as c
 aligned tables — green pass rates, a red failures table — instead of plain text:
 
 ```bash
-pip install -e ".[pretty]"    # optional; the harness runs fine without it
-python -m eval_harness
+uv sync --extra pretty    # optional; the harness runs fine without it
+uv run python -m eval_harness
 ```
 
 `rich` is **optional on purpose**: without it (and on the offline mock path) the harness prints
@@ -73,9 +83,12 @@ stay clean plain text.
 ## Tests
 
 ```bash
-pip install -e ".[dev]"    # pytest + rich (so tests exercise the colored path)
-pytest
+uv sync              # installs the dev group (pytest + rich) by default
+uv run pytest
 ```
+
+Prefer pip? `pip install -e . --group dev` (pip 25.1+) then `pytest`. The `dev` group
+pulls in `rich` so the tests exercise the colored report path.
 
 ## What's inside
 
@@ -86,7 +99,8 @@ pytest
 | `src/eval_harness/scorers.py` | `exact_match` (free, for labels/IDs/formats) and `llm_judge` (for free-text; falls back to exact offline until you validate it). |
 | `src/eval_harness/eval.py` | Load → run → score → report pass rate, cost, and p50/p95 latency, listing every failure. Rich tables when `[pretty]` is installed, else plain text. |
 | `tests/` | Offline pytest suite (scorers, providers, eval pipeline, report formatting) with a small `fixtures/cases.jsonl`. |
-| `pyproject.toml` | Package metadata, entrypoints, and optional extras (`litellm`, `pretty`, `dev`). |
+| `pyproject.toml` | Package metadata, entrypoints, runtime extras (`litellm`, `pretty`), and the `dev` dependency group (PEP 735) for the test toolchain. |
+| `uv.lock` | Committed lockfile — `uv sync` installs these pinned versions for reproducible environments. |
 
 ## Extending it
 

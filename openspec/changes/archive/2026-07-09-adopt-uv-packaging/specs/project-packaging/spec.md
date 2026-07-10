@@ -1,28 +1,4 @@
-# project-packaging Specification
-
-## Purpose
-
-Define how the eval harness is packaged, built, and run so it is installable as a
-standard Python package with a stable import surface and command-line entrypoint.
-
-## Requirements
-
-### Requirement: Installable package layout
-
-The harness SHALL be organized as a `src/eval_harness/` Python package containing the
-`eval`, `providers`, and `scorers` modules, with cross-module imports expressed as
-package-relative imports so the package is importable after installation.
-
-#### Scenario: Package imports resolve after install
-
-- **WHEN** the package is installed (e.g. `pip install -e .`) and `import eval_harness` is run
-- **THEN** the `eval_harness.eval`, `eval_harness.providers`, and `eval_harness.scorers`
-  modules import successfully without `sys.path` manipulation or a working-directory dependency
-
-#### Scenario: Package exposes its version
-
-- **WHEN** a caller reads `eval_harness.__version__`
-- **THEN** it returns the package version string declared in `pyproject.toml`
+## MODIFIED Requirements
 
 ### Requirement: Build configuration and dependencies
 

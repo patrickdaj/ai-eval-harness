@@ -1,11 +1,4 @@
-# repo-hygiene Specification
-
-## Purpose
-
-Define version-control hygiene for the project so generated artifacts stay out of the
-repository while source and eval data remain tracked.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Version-control ignore rules
 
